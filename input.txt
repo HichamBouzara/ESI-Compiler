@@ -1,0 +1,90 @@
+DEBUT 
+INTERFACE
+    COMP FenP : Fenêtre ;
+        PROP
+            Position : {Agrd, Red, Ferm};
+            Visible : Boolean ;
+            Xpos, Ypos : int ;
+        EVET
+
+    COMP FenP : Combo Box (FenP) ;
+        PROP
+            ItemChoisi : {Fichier, Commande, Designation, Information, Option};
+            Actif, Visible : Boolean ;
+        EVT
+            Click(item) {if Actif=True then ItemChoisi := item }
+            Visible := True
+
+    COMP Commande : Combo Box (MenuH) ;
+        PROP
+            Option : {Projection, Distance};
+            Deployer : Boolean ;
+        EVT
+            Click(item) {if Deployer=True then Option := item}
+            EntrerKeyPress (item) {if Deployer = True then Option:=Item}
+
+    COMP Plan : Fenêtre (FenP) ;
+        PROP
+            ListObjet : {Aucun, Cercle, Point, Segement, Rectongle};
+            NbreObjet : int;
+            Actif : Boolean ;
+        EVT
+            Click {if Actif=True then NbreObjet := NbreObjet + 1; ListObjet := ListObjet + Point}
+            Drag {if Actif=True then ListObjet := ListObjet + Segment; NbObjet := NbreObjet + 1}
+
+    COMP BtProjection : Bouton (FenP);
+        PROP 
+            Etat : {Actif, Enfoncer};
+        EVT
+            Click {if Etat = Actif then Etat := Enfoncer}
+            
+    COMP BtDistance : Bouton (FenP);
+        PROP 
+            Etat : {Actif, Enfoncer};
+        EVT
+            Click {if Etat = Actif then Etat := Enfoncer}
+            
+INITIALISATIONS
+    FenP::Position := Agrd;
+    FenP::Visible := True;
+    FenP::Xpos := 10;
+    FenP::Ypos := 10;
+    Commande::Option := Projection ;
+    Commande::Deployer := False ;
+    MenuH::ItemChoisi := Fichier ;
+    MenuH::Actif := False;
+    MenuH::Visible := True;
+    Plan::NbreObjet := 0;
+    Plan::ListObjet := Aucun;
+    Plan::Actif := True;
+    BtProjection::Etat := Actif ;
+    BtDistance::Etat := Actif ;
+ACTIONS
+    {
+        Click (Plan) +
+        Drag (Plan) 
+    } ;
+    {
+        {
+            DbClick (Plan) ;
+            {
+                Click (BtProjection) ~
+                {
+                    Click (Commande) ;
+                    Click (Projection) 
+                }
+            }
+        } + 
+        {
+            DbClick (Plan) ;
+            DbClick (Plan) ;
+            {
+                Click (BtDistance) ~
+                {
+                    Click (Commande) ;
+                    Click (Distance) 
+                }
+            }
+        }
+    }
+FIN

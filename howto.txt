@@ -1,0 +1,4 @@
+Compile and execute :
+    javacc lexical.jj
+    javac *.java
+    java Lexical <input.txt

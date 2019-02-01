@@ -1,0 +1,207 @@
+options {
+  STATIC = false;
+
+}
+PARSER_BEGIN(EsiParser)
+import java.io.PrintStream ;
+import java.io.Reader;
+import java.io.StringReader;
+import java.util.ArrayList;
+import java.util.*;
+
+class EsiParser {
+    public static void main(String[] args) throws ParseException, TokenMgrError {
+        //Reader reader = new StringReader(args[0]);
+        EsiParser parser = new EsiParser(System.in);
+        parser.Start(System.out);
+    }
+    String output;
+    HashMap<String, Composant> composants = new HashMap<String, Composant>();
+}
+PARSER_END(EsiParser)
+
+SKIP : { " " }
+SKIP : { "\n" | "\r" | "\r\n"}
+TOKEN : 
+{ < #LETTER : ["a"-"z"] | ["A"-"Z"]  > 
+| < NUMBER : (["0"-"9"])+  >
+| < SEMICOLON : ";" >
+| < DOUBLEDOT : ":" >
+| < EQUAL : "=" >
+| < NOTEQUAL : "<>" >
+| < DOUBLEDOUBLEDOT : <DOUBLEDOT> <DOUBLEDOT> >
+| < ASSIGN : <DOUBLEDOT> <EQUAL> >
+| < OPENTAG : "{" >
+| < CLOSETAG : "}" >
+| < OPENPAR : "(" >
+| < CLOSEPAR : ")" >
+| < COMMA : "," >
+| < IF : "if" >
+| < THEN : "then" >
+| < DEBUT : "DEBUT" >
+| < FIN : "FIN" >
+| < INTERFACE : "INTERFACE" >
+| < INIT : "INITIALISATIONS" >
+| < ACT : "ACTIONS" >
+| < PLUS : "+" >
+| < ACTION : "Click" | "DbClick" | "ChrKeyPress" | "NumKeyPress" | "EntrerKeyPress" | "Drag" | "Drop" >
+| <NEXTACTION : ";" | "~">
+| < COMP : "COMP" >
+| < OPERATION : "-" | "/" | "*" >
+| < EVET : "EVET" | "EVT" > 
+| < PROP : "PROP">
+| <COMPONENT : "Fenêtre" | "boite Dialogue" | "panel" | "Bouton" | "Champs Texte" |
+                "Combo Box" | "Liste Déroulante" | "case A cochet" | "Bouton Radio" | "Icône" >
+| < ID : (<LETTER>)+(<LETTER>|<NUMBER>)*  >
+                 }
+
+void Start(PrintStream printStream) :
+{}
+{
+    Interface()
+    Inits()
+    Actions()
+    <FIN>
+    { System.out.println("Compilation ended with success."); }
+}
+
+String ReadVal(Token t) :
+{}
+{
+    { return String.valueOf(t.image); }
+}
+
+void Interface() :
+{}
+{
+    <DEBUT> <INTERFACE>
+    (
+        Comp()
+        (
+            <PROP>
+            Prop()
+            <EVET>
+            Evet()
+        )
+    )+
+} 
+
+void Inits() :
+{
+    Token t;
+    String comp, prop, val;
+}
+{
+    <INIT>
+    (
+        t=<ID> {comp=ReadVal(t);} 
+        <DOUBLEDOUBLEDOT> t=<ID> {prop=ReadVal(t);} 
+        <ASSIGN> 
+        (
+            <ID>
+            |
+            <NUMBER>
+        )
+        <SEMICOLON> 
+    )+
+}
+
+void Actions() :
+{}
+{
+    <ACT>
+    (Expression())+
+}
+
+void Comp() :
+{
+    Token t;
+    String id, com;
+}
+{
+    <COMP> t=<ID> { id = ReadVal(t); } <DOUBLEDOT> t=<COMPONENT> 
+    { 
+        com = ReadVal(t); 
+        //composant type exists AND composant name unique
+        if (Composant.typeExists(com) && !composants.containsKey(id)) {
+            Composant comp = new Composant(id, com);
+            composants.put(id, comp);
+        }
+        else{
+            System.out.println("Error: Unable to create Composant");
+            System.exit(0);
+        }
+    }
+    [
+        <OPENPAR>
+        <ID>
+        <CLOSEPAR>
+    ]
+    <SEMICOLON>
+    {   
+      //  if (!components.contains(com)) components.push(com);
+       // components[com].push(id);
+    }
+}
+
+void Prop() :
+{
+    Token t;
+    String id;
+}
+{
+    (
+        ( 
+            t=<ID> {id=ReadVal(t);}
+            (
+                <COMMA>
+                t=<ID> {id=ReadVal(t);}
+            )*
+        )
+        <DOUBLEDOT> 
+        (
+            t=<ID> {ReadVal(t);}
+            |
+            <OPENTAG> 
+            t=<ID> {ReadVal(t);}
+            (
+                <COMMA>
+                t=<ID> {ReadVal(t);}
+            )*
+            <CLOSETAG>
+        )
+        <SEMICOLON>
+    )+
+}
+
+void Evet() :
+{}
+{
+    (
+        LOOKAHEAD(2)
+        <ACTION> [ <OPENPAR> <ID> <CLOSEPAR> ]
+        <OPENTAG> <IF> <ID> (<EQUAL> | <NOTEQUAL>) <ID> <THEN> Assign() (<SEMICOLON> Assign() )* <CLOSETAG>
+        |
+        <ID> <ASSIGN> <ID> 
+    )*
+}
+void Assign() : 
+{}
+{   
+    <ID> <ASSIGN> <ID> ((<PLUS> | <OPERATION>) (<ID> | <NUMBER>))*
+}
+
+void Expression() :
+{
+    Token t;
+    String act, comp, next;
+}
+{
+        
+        (
+            <ACTION> <OPENPAR> <ID> <CLOSEPAR> 
+            |   
+            <OPENTAG> Expression() <CLOSETAG>
+        )
+        (LOOKAHEAD(2) ( <SEMICOLON> | <NEXTACTION> | <PLUS> ) Expression())* 
+}
