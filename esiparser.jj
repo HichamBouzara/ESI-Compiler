@@ -112,7 +112,7 @@ void Inits() :
                 Attribut attr = getAttribut(comp, prop);
                 attr.setValue(val);
             }else{
-                System.out.println("Erreur: Composant inexistant.");
+                System.out.println("Erreur: Initialisation sur un composant inexistant.");
                 System.exit(0);
             }
         }
@@ -237,7 +237,7 @@ void Prop(Composant comp) :
 void Evet(Composant comp) :
 {
     Token t;
-    String act, att1, op, att2, att, aff;
+    String act, att1 = "", op = "=", att2 = "", att, aff;
     Attribut attr = null, attr1 = null;
 }
 {
@@ -245,16 +245,19 @@ void Evet(Composant comp) :
         LOOKAHEAD(2)
         t=<ACTION> {act=ReadVal(t);} [ <OPENPAR> <ID> <CLOSEPAR> ]
         <OPENTAG> 
-        <IF> t=<ID> {
-            att1=ReadVal(t);
-            attr1 = getAttribut(comp, att1);
-        }
-        (t=<EQUAL> | t=<NOTEQUAL>) {op=ReadVal(t);} 
-        t=<ID> {att2=ReadVal(t);} <THEN> 
+        [
+            <IF> t=<ID> {
+                att1=ReadVal(t);
+                attr1 = getAttribut(comp, att1);
+            }
+            (t=<EQUAL> | t=<NOTEQUAL>) {op=ReadVal(t);} 
+            t=<ID> {att2=ReadVal(t);} <THEN>
+        ]
+         
         t=<ID> {
             att=ReadVal(t);
             attr = getAttribut(comp, att);
-        } <ASSIGN> t=<ID> {aff=ReadVal(t);}
+        } <ASSIGN> (t=<ID> | t=<NUMBER>) {aff=ReadVal(t);}
         ((<PLUS> | <OPERATION>) (<ID> | <NUMBER>))*
         <CLOSETAG>
         {
@@ -262,8 +265,6 @@ void Evet(Composant comp) :
             Action action = new Action(act, cond, attr, aff);
             comp.addAction(act, action);
         }
-        |
-        t=<ID> {att=ReadVal(t);} <ASSIGN> t=<ID> {aff=ReadVal(t); Assign(comp,att,aff);}
 
     )*
 }
@@ -280,23 +281,31 @@ Attribut getAttribut(Composant comp, String att):
         
     }
 }
-void Assign(Composant comp, String att, String aff) : 
-{
-    Attribut attr = getAttribut(comp, att);
-}
-{   
-    {attr.setValue(aff);}
-}
+
 
 void Expression() :
 {
     Token t;
-    String act, comp, next;
+    String act, name;
 }
 {
         
         (
-            <ACTION> <OPENPAR> <ID> <CLOSEPAR> 
+            t=<ACTION> {act=ReadVal(t);} <OPENPAR> t=<ID> {name=ReadVal(t);} <CLOSEPAR>
+            {
+                if(composants.containsKey(name)){
+                    Composant comp = composants.get(name);
+                    if(comp.actionExists(act)){
+                        comp.action(act);
+                    }else{
+                        System.out.println("Erreur: Action sur composant inexistante.");
+                        System.exit(0);
+                    }
+                }else{
+                    System.out.println("Erreur: Action sur un composant inexistant.");
+                    System.exit(0);
+                }
+            } 
             |   
             <OPENTAG> Expression() <CLOSETAG>
         )

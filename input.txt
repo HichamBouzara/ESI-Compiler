@@ -13,7 +13,6 @@ INTERFACE
             Actif, Visible : Boolean ;
         EVT
             Click(item) {if Actif=True then ItemChoisi := item }
-            Visible := True
 
     COMP Commande : Combo Box (MenuH) ;
         PROP
@@ -31,6 +30,7 @@ INTERFACE
         EVT
             Click {if Actif=True then ListObjet := Point}
             Drag {if Actif=True then ListObjet := Segment}
+            DbClick {NbreObjet := 1}
 
     COMP BtProjection : Bouton (FenP);
         PROP 
@@ -71,7 +71,7 @@ ACTIONS
                 Click (BtProjection) ~
                 {
                     Click (Commande) ;
-                    Click (Projection) 
+                    Click (BtProjection) 
                 }
             }
         } + 
@@ -82,7 +82,7 @@ ACTIONS
                 Click (BtDistance) ~
                 {
                     Click (Commande) ;
-                    Click (Distance) 
+                    Click (BtDistance) 
                 }
             }
         }

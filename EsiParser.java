@@ -82,7 +82,7 @@ val = ReadVal(t);
                 Attribut attr = getAttribut(comp, prop);
                 attr.setValue(val);
             }else{
-                System.out.println("Erreur: Composant inexistant.");
+                System.out.println("Erreur: Initialisation sur un composant inexistant.");
                 System.exit(0);
             }
       jj_consume_token(SEMICOLON);
@@ -259,39 +259,35 @@ i = 0; j = 0;
   }
 
   final public void Evet(Composant comp) throws ParseException {Token t;
-    String act, att1, op, att2, att, aff;
+    String act, att1 = "", op = "=", att2 = "", att, aff;
     Attribut attr = null, attr1 = null;
     label_7:
     while (true) {
-      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case ACTION:
-      case ID:{
+      if (jj_2_1(2)) {
         ;
+      } else {
+        break label_7;
+      }
+      t = jj_consume_token(ACTION);
+act=ReadVal(t);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case OPENPAR:{
+        jj_consume_token(OPENPAR);
+        jj_consume_token(ID);
+        jj_consume_token(CLOSEPAR);
         break;
         }
       default:
         jj_la1[9] = jj_gen;
-        break label_7;
+        ;
       }
-      if (jj_2_1(2)) {
-        t = jj_consume_token(ACTION);
-act=ReadVal(t);
-        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-        case OPENPAR:{
-          jj_consume_token(OPENPAR);
-          jj_consume_token(ID);
-          jj_consume_token(CLOSEPAR);
-          break;
-          }
-        default:
-          jj_la1[10] = jj_gen;
-          ;
-        }
-        jj_consume_token(OPENTAG);
+      jj_consume_token(OPENTAG);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case IF:{
         jj_consume_token(IF);
         t = jj_consume_token(ID);
 att1=ReadVal(t);
-            attr1 = getAttribut(comp, att1);
+                attr1 = getAttribut(comp, att1);
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case EQUAL:{
           t = jj_consume_token(EQUAL);
@@ -302,7 +298,7 @@ att1=ReadVal(t);
           break;
           }
         default:
-          jj_la1[11] = jj_gen;
+          jj_la1[10] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -310,65 +306,64 @@ op=ReadVal(t);
         t = jj_consume_token(ID);
 att2=ReadVal(t);
         jj_consume_token(THEN);
-        t = jj_consume_token(ID);
+        break;
+        }
+      default:
+        jj_la1[11] = jj_gen;
+        ;
+      }
+      t = jj_consume_token(ID);
 att=ReadVal(t);
             attr = getAttribut(comp, att);
-        jj_consume_token(ASSIGN);
+      jj_consume_token(ASSIGN);
+      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+      case ID:{
         t = jj_consume_token(ID);
-aff=ReadVal(t);
-        label_8:
-        while (true) {
-          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-          case PLUS:
-          case OPERATION:{
-            ;
-            break;
-            }
-          default:
-            jj_la1[12] = jj_gen;
-            break label_8;
-          }
-          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-          case PLUS:{
-            jj_consume_token(PLUS);
-            break;
-            }
-          case OPERATION:{
-            jj_consume_token(OPERATION);
-            break;
-            }
-          default:
-            jj_la1[13] = jj_gen;
-            jj_consume_token(-1);
-            throw new ParseException();
-          }
-          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-          case ID:{
-            jj_consume_token(ID);
-            break;
-            }
-          case NUMBER:{
-            jj_consume_token(NUMBER);
-            break;
-            }
-          default:
-            jj_la1[14] = jj_gen;
-            jj_consume_token(-1);
-            throw new ParseException();
-          }
+        break;
         }
-        jj_consume_token(CLOSETAG);
-Condition cond = new Condition(attr1, op, att2);
-            Action action = new Action(act, cond, attr, aff);
-            comp.addAction(act, action);
-      } else {
+      case NUMBER:{
+        t = jj_consume_token(NUMBER);
+        break;
+        }
+      default:
+        jj_la1[12] = jj_gen;
+        jj_consume_token(-1);
+        throw new ParseException();
+      }
+aff=ReadVal(t);
+      label_8:
+      while (true) {
+        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+        case PLUS:
+        case OPERATION:{
+          ;
+          break;
+          }
+        default:
+          jj_la1[13] = jj_gen;
+          break label_8;
+        }
+        switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+        case PLUS:{
+          jj_consume_token(PLUS);
+          break;
+          }
+        case OPERATION:{
+          jj_consume_token(OPERATION);
+          break;
+          }
+        default:
+          jj_la1[14] = jj_gen;
+          jj_consume_token(-1);
+          throw new ParseException();
+        }
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case ID:{
-          t = jj_consume_token(ID);
-att=ReadVal(t);
-          jj_consume_token(ASSIGN);
-          t = jj_consume_token(ID);
-aff=ReadVal(t); Assign(comp,att,aff);
+          jj_consume_token(ID);
+          break;
+          }
+        case NUMBER:{
+          jj_consume_token(NUMBER);
           break;
           }
         default:
@@ -377,6 +372,10 @@ aff=ReadVal(t); Assign(comp,att,aff);
           throw new ParseException();
         }
       }
+      jj_consume_token(CLOSETAG);
+Condition cond = new Condition(attr1, op, att2);
+            Action action = new Action(act, cond, attr, aff);
+            comp.addAction(act, action);
     }
   }
 
@@ -390,18 +389,28 @@ if (comp.attExists(att)) {if ("" != null) return comp.getAttribut(att);}
     throw new Error("Missing return statement in function");
   }
 
-  final public void Assign(Composant comp, String att, String aff) throws ParseException {Attribut attr = getAttribut(comp, att);
-attr.setValue(aff);
-  }
-
   final public void Expression() throws ParseException {Token t;
-    String act, comp, next;
+    String act, name;
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case ACTION:{
-      jj_consume_token(ACTION);
+      t = jj_consume_token(ACTION);
+act=ReadVal(t);
       jj_consume_token(OPENPAR);
-      jj_consume_token(ID);
+      t = jj_consume_token(ID);
+name=ReadVal(t);
       jj_consume_token(CLOSEPAR);
+if(composants.containsKey(name)){
+                    Composant comp = composants.get(name);
+                    if(comp.actionExists(act)){
+                        comp.action(act);
+                    }else{
+                        System.out.println("Erreur: Action sur composant inexistante.");
+                        System.exit(0);
+                    }
+                }else{
+                    System.out.println("Erreur: Action sur un composant inexistant.");
+                    System.exit(0);
+                }
       break;
       }
     case OPENTAG:{
@@ -460,6 +469,12 @@ attr.setValue(aff);
     finally { jj_save(1, xla); }
   }
 
+  private boolean jj_3R_12()
+ {
+    if (jj_scan_token(ACTION)) return true;
+    return false;
+  }
+
   private boolean jj_3R_11()
  {
     Token xsp;
@@ -489,12 +504,6 @@ attr.setValue(aff);
     }
     }
     if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3R_12()
- {
-    if (jj_scan_token(ACTION)) return true;
     return false;
   }
 
@@ -533,10 +542,10 @@ attr.setValue(aff);
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x10000000,0x40,0x0,0x4002000,0x8000,0x20000,0x20000,0x2000,0x0,0x4000000,0x8000,0x600,0x22000000,0x22000000,0x40,0x0,0x4002000,0xa000080,};
+      jj_la1_0 = new int[] {0x10000000,0x40,0x0,0x4002000,0x8000,0x20000,0x20000,0x2000,0x0,0x8000,0x600,0x40000,0x40,0x22000000,0x22000000,0x40,0x4002000,0xa000080,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x2,0x2,0x0,0x0,0x0,0x0,0x2,0x2,0x2,0x0,0x0,0x0,0x0,0x2,0x2,0x0,0x0,};
+      jj_la1_1 = new int[] {0x0,0x2,0x2,0x0,0x0,0x0,0x0,0x2,0x2,0x0,0x0,0x0,0x2,0x0,0x0,0x2,0x0,0x0,};
    }
   final private JJCalls[] jj_2_rtns = new JJCalls[2];
   private boolean jj_rescan = false;

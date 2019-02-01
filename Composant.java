@@ -23,8 +23,16 @@ public class Composant {
     return (attributs.containsKey(att));
   }
 
+  public boolean actionExists(String act) {
+    return (actions.containsKey(act));
+  }
+
   public Attribut getAttribut(String att) {
     return (attributs.get(att));
+  }
+
+  public Action getAction(String act) {
+    return (actions.get(act));
   }
 
   public void addComposant(String name, Composant comp) {
@@ -39,13 +47,9 @@ public class Composant {
     this.actions.put(name, act);
   }
 
-  public Boolean action(String name) {
-    if (this.actions.containsKey(name)) {
-      Action act = this.actions.get(name);
-      act.execute();
-      return true;
-    } else
-      return false;
+  public void action(String name) {
+    Action act = this.actions.get(name);
+    act.execute();
   }
 
   /**
