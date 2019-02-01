@@ -84,7 +84,7 @@ void Interface() :
             <PROP>
             Prop(comp)
             <EVET>
-            Evet()
+            Evet(comp)
         )
     )+
 } 
@@ -119,7 +119,7 @@ void Actions() :
 Composant Comp() :
 {
     Token t;
-    String id, com;
+    String id, id2, com;
     Composant comp = null;
 }
 {
@@ -141,11 +141,11 @@ Composant Comp() :
         t=<ID> 
         <CLOSEPAR>
         { 
-            id = ReadVal(t); 
+            id2 = ReadVal(t); 
             //Checks if propriatary composant exists and is different than created composant
-            if (composants.containsKey(id) && id!=comp.getName()) {
-            Composant origComp = composants.get(id);
-            origComp.addComposant(comp);
+            if (composants.containsKey(id2) && id2!=comp.getName()) {
+            Composant origComp = composants.get(id2);
+            origComp.addComposant(id, comp);
             }
             else{
                 System.out.println("Error: Composant proprietaire indefini.");
@@ -185,7 +185,7 @@ void Prop(Composant comp) :
                 for(int c1=0 ; c1<i ; c1++){
                     att = attFactory.createAttribut(id[c1],type[0]);
                     if(att != null){
-                        comp.addAttribut(att);
+                        comp.addAttribut(id[c1], att);
                     }
                     else{
                         System.out.println("Error: Type attribut indefini.");
@@ -209,7 +209,7 @@ void Prop(Composant comp) :
                     if(att != null){
                         List attl = (List)att;
                         attl.setValues(new HashSet<String>(Arrays.asList(type)));
-                        comp.addAttribut(attl);
+                        comp.addAttribut(id[c1], attl);
                     }
                     else{
                         System.out.println("Error: Type attribut indefini.");
@@ -223,21 +223,58 @@ void Prop(Composant comp) :
     )+
 }
 
-void Evet() :
-{}
+void Evet(Composant comp) :
+{
+    Token t;
+    String act, att1, op, att2, att, aff;
+    Attribut attr = null, attr1 = null;
+}
 {
     (
         LOOKAHEAD(2)
-        <ACTION> [ <OPENPAR> <ID> <CLOSEPAR> ]
-        <OPENTAG> <IF> <ID> (<EQUAL> | <NOTEQUAL>) <ID> <THEN> Assign() (<SEMICOLON> Assign() )* <CLOSETAG>
+        t=<ACTION> {act=ReadVal(t);} [ <OPENPAR> <ID> <CLOSEPAR> ]
+        <OPENTAG> 
+        <IF> t=<ID> {
+            att1=ReadVal(t);
+            attr1 = getAttribut(comp, att1);
+        }
+        (t=<EQUAL> | t=<NOTEQUAL>) {op=ReadVal(t);} 
+        t=<ID> {att2=ReadVal(t);} <THEN> 
+        t=<ID> {
+            att=ReadVal(t);
+            attr = getAttribut(comp, att);
+        } <ASSIGN> t=<ID> {aff=ReadVal(t);}
+        ((<PLUS> | <OPERATION>) (<ID> | <NUMBER>))*
+        <CLOSETAG>
+        {
+            Condition cond = new Condition(attr1, op, att2);
+            Action action = new Action(act, cond, attr, aff);
+            comp.addAction(act, action);
+        }
         |
-        <ID> <ASSIGN> <ID> 
+        t=<ID> {att=ReadVal(t);} <ASSIGN> t=<ID> {aff=ReadVal(t); Assign(comp,att,aff);}
+
     )*
 }
-void Assign() : 
+Attribut getAttribut(Composant comp, String att):
 {}
+{
+    {
+        if (comp.attExists(att)) return comp.getAttribut(att);
+        else {
+            System.out.println("Erreur: Attribut indefini.");
+            System.exit(0);
+            return null;
+        }
+        
+    }
+}
+void Assign(Composant comp, String att, String aff) : 
+{
+    Attribut attr = getAttribut(comp, att);
+}
 {   
-    <ID> <ASSIGN> <ID> ((<PLUS> | <OPERATION>) (<ID> | <NUMBER>))*
+    {attr.setValue(aff);}
 }
 
 void Expression() :

@@ -1,8 +1,9 @@
 import java.util.*;
 
-public class List extends Attribut {
+public class List implements Attribut {
     private Set<String> values = new HashSet<>();
     private String value;
+    private String name;
 
     public List(String name) {
         this.name = name;

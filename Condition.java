@@ -11,11 +11,12 @@ public class Condition {
     }
 
     public Boolean test() {
-        switch (att1) {
-        case (att1 instanceof Bool):
-            return (att1.getValue() == parseBoolean(att2));
-        case (att1 instanceof Int):
-            int val1 = att1.getValue();
+        if (att1 instanceof Bool) {
+            Bool b = (Bool) att1;
+            return (b.getValue() == Boolean.parseBoolean(att2));
+        } else if (att1 instanceof Int) {
+            Int i = (Int) att1;
+            int val1 = i.getValue();
             int val2 = Integer.valueOf(att2);
             if (op.equals("="))
                 return (val1 == val2);
@@ -23,16 +24,19 @@ public class Condition {
                 return (val1 < val2);
             else if (op.equals(">"))
                 return (val1 > val2);
+            else if (op.equals("!="))
+                return (val1 != val2);
             else
                 return (val1 == val2);
-        case (att1 instanceof List):
-            if (att1.valueExists(att2))
-                return (att1.getValue().equals(att2));
+        } else if (att1 instanceof List) {
+            List l = (List) att1;
+            if (l.valueExists(att2))
+                return (l.getValue().equals(att2));
             else
                 return false;
-        default:
+        } else
             return false;
-        }
+
     }
 
 }

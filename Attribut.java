@@ -1,5 +1,6 @@
 import java.util.*;
 
-public class Attribut {
-    String name;
+public interface Attribut {
+
+    public void setValue(String val);
 }

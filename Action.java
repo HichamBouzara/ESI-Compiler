@@ -15,19 +15,21 @@ public class Action {
 
     public void execute() {
         if (condition.test()) {
-            switch (attribut) {
-            case (attribut instanceof Bool):
-                attribut.setValue(parseBoolean(affectation));
-                break;
-            case (attribut instanceof Int):
-                attribut.setValue(Integer.valueOf(affectation));
-                break;
-            case (attribut instanceof List):
-                attribut.setValue(affectation);
-                break;
-            default:
-                break;
+            if (this.attribut instanceof Bool) {
+                Bool b = (Bool) attribut;
+                b.setValue(affectation);
             }
+
+            else if (this.attribut instanceof Int) {
+                Int i = (Int) attribut;
+                i.setValue(affectation);
+            }
+
+            else if (this.attribut instanceof List) {
+                List l = (List) attribut;
+                l.setValue(affectation);
+            }
+
         }
     }
 }

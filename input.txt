@@ -29,8 +29,8 @@ INTERFACE
             NbreObjet : int;
             Actif : Boolean ;
         EVT
-            Click {if Actif=True then NbreObjet := NbreObjet + 1; ListObjet := ListObjet + Point}
-            Drag {if Actif=True then ListObjet := ListObjet + Segment; NbObjet := NbreObjet + 1}
+            Click {if Actif=True then ListObjet := Point}
+            Drag {if Actif=True then ListObjet := Segment}
 
     COMP BtProjection : Bouton (FenP);
         PROP 

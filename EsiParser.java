@@ -38,7 +38,7 @@ System.out.println("Compilation ended with success.");
       jj_consume_token(PROP);
       Prop(comp);
       jj_consume_token(EVET);
-      Evet();
+      Evet(comp);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case COMP:{
         ;
@@ -108,7 +108,7 @@ prop=ReadVal(t);
   }
 
   final public Composant Comp() throws ParseException {Token t;
-    String id, com;
+    String id, id2, com;
     Composant comp = null;
     jj_consume_token(COMP);
     t = jj_consume_token(ID);
@@ -130,11 +130,11 @@ com = ReadVal(t);
       jj_consume_token(OPENPAR);
       t = jj_consume_token(ID);
       jj_consume_token(CLOSEPAR);
-id = ReadVal(t);
+id2 = ReadVal(t);
             //Checks if propriatary composant exists and is different than created composant
-            if (composants.containsKey(id) && id!=comp.getName()) {
-            Composant origComp = composants.get(id);
-            origComp.addComposant(comp);
+            if (composants.containsKey(id2) && id2!=comp.getName()) {
+            Composant origComp = composants.get(id2);
+            origComp.addComposant(id, comp);
             }
             else{
                 System.out.println("Error: Composant proprietaire indefini.");
@@ -185,9 +185,8 @@ type[0]=ReadVal(t);
                 Attribut att = null;
                 for(int c1=0 ; c1<i ; c1++){
                     att = attFactory.createAttribut(id[c1],type[0]);
-                        System.out.println(type[0]);
                     if(att != null){
-                        comp.addAttribut(att);
+                        comp.addAttribut(id[c1], att);
                     }
                     else{
                         System.out.println("Error: Type attribut indefini.");
@@ -222,7 +221,7 @@ Attribut att = null;
                     if(att != null){
                         List attl = (List)att;
                         attl.setValues(new HashSet<String>(Arrays.asList(type)));
-                        comp.addAttribut(attl);
+                        comp.addAttribut(id[c1], attl);
                     }
                     else{
                         System.out.println("Error: Type attribut indefini.");
@@ -250,7 +249,9 @@ i = 0; j = 0;
     }
   }
 
-  final public void Evet() throws ParseException {
+  final public void Evet(Composant comp) throws ParseException {Token t;
+    String act, att1, op, att2, att, aff;
+    Attribut attr = null, attr1 = null;
     label_7:
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -264,7 +265,8 @@ i = 0; j = 0;
         break label_7;
       }
       if (jj_2_1(2)) {
-        jj_consume_token(ACTION);
+        t = jj_consume_token(ACTION);
+act=ReadVal(t);
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case OPENPAR:{
           jj_consume_token(OPENPAR);
@@ -278,14 +280,16 @@ i = 0; j = 0;
         }
         jj_consume_token(OPENTAG);
         jj_consume_token(IF);
-        jj_consume_token(ID);
+        t = jj_consume_token(ID);
+att1=ReadVal(t);
+            attr1 = getAttribut(comp, att1);
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case EQUAL:{
-          jj_consume_token(EQUAL);
+          t = jj_consume_token(EQUAL);
           break;
           }
         case NOTEQUAL:{
-          jj_consume_token(NOTEQUAL);
+          t = jj_consume_token(NOTEQUAL);
           break;
           }
         default:
@@ -293,13 +297,21 @@ i = 0; j = 0;
           jj_consume_token(-1);
           throw new ParseException();
         }
-        jj_consume_token(ID);
+op=ReadVal(t);
+        t = jj_consume_token(ID);
+att2=ReadVal(t);
         jj_consume_token(THEN);
-        Assign();
+        t = jj_consume_token(ID);
+att=ReadVal(t);
+            attr = getAttribut(comp, att);
+        jj_consume_token(ASSIGN);
+        t = jj_consume_token(ID);
+aff=ReadVal(t);
         label_8:
         while (true) {
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-          case SEMICOLON:{
+          case PLUS:
+          case OPERATION:{
             ;
             break;
             }
@@ -307,20 +319,51 @@ i = 0; j = 0;
             jj_la1[12] = jj_gen;
             break label_8;
           }
-          jj_consume_token(SEMICOLON);
-          Assign();
+          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+          case PLUS:{
+            jj_consume_token(PLUS);
+            break;
+            }
+          case OPERATION:{
+            jj_consume_token(OPERATION);
+            break;
+            }
+          default:
+            jj_la1[13] = jj_gen;
+            jj_consume_token(-1);
+            throw new ParseException();
+          }
+          switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
+          case ID:{
+            jj_consume_token(ID);
+            break;
+            }
+          case NUMBER:{
+            jj_consume_token(NUMBER);
+            break;
+            }
+          default:
+            jj_la1[14] = jj_gen;
+            jj_consume_token(-1);
+            throw new ParseException();
+          }
         }
         jj_consume_token(CLOSETAG);
+Condition cond = new Condition(attr1, op, att2);
+            Action action = new Action(act, cond, attr, aff);
+            comp.addAction(act, action);
       } else {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
         case ID:{
-          jj_consume_token(ID);
+          t = jj_consume_token(ID);
+att=ReadVal(t);
           jj_consume_token(ASSIGN);
-          jj_consume_token(ID);
+          t = jj_consume_token(ID);
+aff=ReadVal(t); Assign(comp,att,aff);
           break;
           }
         default:
-          jj_la1[13] = jj_gen;
+          jj_la1[15] = jj_gen;
           jj_consume_token(-1);
           throw new ParseException();
         }
@@ -328,51 +371,18 @@ i = 0; j = 0;
     }
   }
 
-  final public void Assign() throws ParseException {
-    jj_consume_token(ID);
-    jj_consume_token(ASSIGN);
-    jj_consume_token(ID);
-    label_9:
-    while (true) {
-      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case PLUS:
-      case OPERATION:{
-        ;
-        break;
+  final public Attribut getAttribut(Composant comp, String att) throws ParseException {
+if (comp.attExists(att)) {if ("" != null) return comp.getAttribut(att);}
+        else {
+            System.out.println("Erreur: Attribut indefini.");
+            System.exit(0);
+            {if ("" != null) return null;}
         }
-      default:
-        jj_la1[14] = jj_gen;
-        break label_9;
-      }
-      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case PLUS:{
-        jj_consume_token(PLUS);
-        break;
-        }
-      case OPERATION:{
-        jj_consume_token(OPERATION);
-        break;
-        }
-      default:
-        jj_la1[15] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-      switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
-      case ID:{
-        jj_consume_token(ID);
-        break;
-        }
-      case NUMBER:{
-        jj_consume_token(NUMBER);
-        break;
-        }
-      default:
-        jj_la1[16] = jj_gen;
-        jj_consume_token(-1);
-        throw new ParseException();
-      }
-    }
+    throw new Error("Missing return statement in function");
+  }
+
+  final public void Assign(Composant comp, String att, String aff) throws ParseException {Attribut attr = getAttribut(comp, att);
+attr.setValue(aff);
   }
 
   final public void Expression() throws ParseException {Token t;
@@ -392,16 +402,16 @@ i = 0; j = 0;
       break;
       }
     default:
-      jj_la1[17] = jj_gen;
+      jj_la1[16] = jj_gen;
       jj_consume_token(-1);
       throw new ParseException();
     }
-    label_10:
+    label_9:
     while (true) {
       if (jj_2_2(2)) {
         ;
       } else {
-        break label_10;
+        break label_9;
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SEMICOLON:{
@@ -417,7 +427,7 @@ i = 0; j = 0;
         break;
         }
       default:
-        jj_la1[18] = jj_gen;
+        jj_la1[17] = jj_gen;
         jj_consume_token(-1);
         throw new ParseException();
       }
@@ -443,32 +453,16 @@ i = 0; j = 0;
 
   private boolean jj_3R_11()
  {
-    if (jj_scan_token(OPENPAR)) return true;
-    return false;
-  }
-
-  private boolean jj_3_1()
- {
-    if (jj_scan_token(ACTION)) return true;
     Token xsp;
     xsp = jj_scanpos;
-    if (jj_3R_11()) jj_scanpos = xsp;
-    if (jj_scan_token(OPENTAG)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_12()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_13()) {
+    if (jj_3R_12()) {
     jj_scanpos = xsp;
-    if (jj_3R_14()) return true;
+    if (jj_3R_13()) return true;
     }
     return false;
   }
 
-  private boolean jj_3R_14()
+  private boolean jj_3R_13()
  {
     if (jj_scan_token(OPENTAG)) return true;
     return false;
@@ -485,13 +479,29 @@ i = 0; j = 0;
     if (jj_scan_token(25)) return true;
     }
     }
-    if (jj_3R_12()) return true;
+    if (jj_3R_11()) return true;
     return false;
   }
 
-  private boolean jj_3R_13()
+  private boolean jj_3R_12()
  {
     if (jj_scan_token(ACTION)) return true;
+    return false;
+  }
+
+  private boolean jj_3_1()
+ {
+    if (jj_scan_token(ACTION)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_10()) jj_scanpos = xsp;
+    if (jj_scan_token(OPENTAG)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_10()
+ {
+    if (jj_scan_token(OPENPAR)) return true;
     return false;
   }
 
@@ -506,7 +516,7 @@ i = 0; j = 0;
   private Token jj_scanpos, jj_lastpos;
   private int jj_la;
   private int jj_gen;
-  final private int[] jj_la1 = new int[19];
+  final private int[] jj_la1 = new int[18];
   static private int[] jj_la1_0;
   static private int[] jj_la1_1;
   static {
@@ -514,10 +524,10 @@ i = 0; j = 0;
       jj_la1_init_1();
    }
    private static void jj_la1_init_0() {
-      jj_la1_0 = new int[] {0x10000000,0x40,0x0,0x4002000,0x8000,0x20000,0x20000,0x2000,0x0,0x4000000,0x8000,0x600,0x80,0x0,0x22000000,0x22000000,0x40,0x4002000,0xa000080,};
+      jj_la1_0 = new int[] {0x10000000,0x40,0x0,0x4002000,0x8000,0x20000,0x20000,0x2000,0x0,0x4000000,0x8000,0x600,0x22000000,0x22000000,0x40,0x0,0x4002000,0xa000080,};
    }
    private static void jj_la1_init_1() {
-      jj_la1_1 = new int[] {0x0,0x2,0x2,0x0,0x0,0x0,0x0,0x2,0x2,0x2,0x0,0x0,0x0,0x2,0x0,0x0,0x2,0x0,0x0,};
+      jj_la1_1 = new int[] {0x0,0x2,0x2,0x0,0x0,0x0,0x0,0x2,0x2,0x2,0x0,0x0,0x0,0x0,0x2,0x2,0x0,0x0,};
    }
   final private JJCalls[] jj_2_rtns = new JJCalls[2];
   private boolean jj_rescan = false;
@@ -534,7 +544,7 @@ i = 0; j = 0;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -549,7 +559,7 @@ i = 0; j = 0;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -560,7 +570,7 @@ i = 0; j = 0;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -571,7 +581,7 @@ i = 0; j = 0;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -581,7 +591,7 @@ i = 0; j = 0;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -591,7 +601,7 @@ i = 0; j = 0;
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
-    for (int i = 0; i < 19; i++) jj_la1[i] = -1;
+    for (int i = 0; i < 18; i++) jj_la1[i] = -1;
     for (int i = 0; i < jj_2_rtns.length; i++) jj_2_rtns[i] = new JJCalls();
   }
 
@@ -709,7 +719,7 @@ i = 0; j = 0;
       la1tokens[jj_kind] = true;
       jj_kind = -1;
     }
-    for (int i = 0; i < 19; i++) {
+    for (int i = 0; i < 18; i++) {
       if (jj_la1[i] == jj_gen) {
         for (int j = 0; j < 32; j++) {
           if ((jj_la1_0[i] & (1<<j)) != 0) {

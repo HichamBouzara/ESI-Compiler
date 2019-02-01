@@ -1,14 +1,15 @@
 import java.util.*;
 
-public class Int extends Attribut {
+public class Int implements Attribut {
     private int value;
+    private String name;
 
     public Int(String name) {
         this.name = name;
     }
 
-    public void setValue(int value) {
-        this.value = value;
+    public void setValue(String value) {
+        this.value = Integer.valueOf(value);
     }
 
     public int getValue() {

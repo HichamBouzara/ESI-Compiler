@@ -6,8 +6,9 @@ public class Composant {
   static final Set<String> types = new HashSet<>(Arrays.asList(arr));
   private String type;
   private String name;
-  ArrayList<Attribut> attributs = new ArrayList<>();
-  ArrayList<Composant> composants = new ArrayList<Composant>();
+  HashMap<String, Attribut> attributs = new HashMap<String, Attribut>();
+  HashMap<String, Action> actions = new HashMap<String, Action>();
+  HashMap<String, Composant> composants = new HashMap<String, Composant>();
 
   public Composant(String name, String type) {
     this.type = type;
@@ -18,12 +19,33 @@ public class Composant {
     return (types.contains(type));
   }
 
-  public void addComposant(Composant comp) {
-    this.composants.add(comp);
+  public boolean attExists(String att) {
+    return (attributs.containsKey(att));
   }
 
-  public void addAttribut(Attribut att) {
-    this.attributs.add(att);
+  public Attribut getAttribut(String att) {
+    return (attributs.get(att));
+  }
+
+  public void addComposant(String name, Composant comp) {
+    this.composants.put(name, comp);
+  }
+
+  public void addAttribut(String name, Attribut att) {
+    this.attributs.put(name, att);
+  }
+
+  public void addAction(String name, Action act) {
+    this.actions.put(name, act);
+  }
+
+  public Boolean action(String name) {
+    if (this.actions.containsKey(name)) {
+      Action act = this.actions.get(name);
+      act.execute();
+      return true;
+    } else
+      return false;
   }
 
   /**
