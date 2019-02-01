@@ -117,31 +117,39 @@ void Comp() :
 {
     Token t;
     String id, com;
+    Composant comp = null;
 }
 {
     <COMP> t=<ID> { id = ReadVal(t); } <DOUBLEDOT> t=<COMPONENT> 
     { 
         com = ReadVal(t); 
-        //composant type exists AND composant name unique
-        if (Composant.typeExists(com) && !composants.containsKey(id)) {
-            Composant comp = new Composant(id, com);
+        //composant name unique
+        if (!composants.containsKey(id)) {
+            comp = new Composant(id, com);
             composants.put(id, comp);
         }
         else{
-            System.out.println("Error: Unable to create Composant");
+            System.out.println("Error: Le nom du composant doit etre unique.");
             System.exit(0);
         }
     }
     [
         <OPENPAR>
-        <ID>
+        t=<ID> 
         <CLOSEPAR>
+        { 
+            id = ReadVal(t); 
+            if (composants.containsKey(id)) {
+            Composant origComp = composants.get(id);
+            origComp.addComposant(comp);
+            }
+            else{
+                System.out.println("Error: Composant proprietaire indefini.");
+                System.exit(0);
+            }
+        }
     ]
     <SEMICOLON>
-    {   
-      //  if (!components.contains(com)) components.push(com);
-       // components[com].push(id);
-    }
 }
 
 void Prop() :

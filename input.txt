@@ -7,7 +7,7 @@ INTERFACE
             Xpos, Ypos : int ;
         EVET
 
-    COMP FenP : Combo Box (FenP) ;
+    COMP MenuH : Combo Box (FenP) ;
         PROP
             ItemChoisi : {Fichier, Commande, Designation, Information, Option};
             Actif, Visible : Boolean ;

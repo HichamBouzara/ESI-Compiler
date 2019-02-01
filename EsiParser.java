@@ -19,8 +19,8 @@ class EsiParser implements EsiParserConstants {
     Interface();
     Inits();
     Actions();
-System.out.println(Composant.typeExists("Bouton"));
     jj_consume_token(FIN);
+System.out.println("Compilation ended with success.");
   }
 
   final public String ReadVal(Token t) throws ParseException {
@@ -108,26 +108,36 @@ prop=ReadVal(t);
 
   final public void Comp() throws ParseException {Token t;
     String id, com;
+    Composant comp = null;
     jj_consume_token(COMP);
     t = jj_consume_token(ID);
 id = ReadVal(t);
     jj_consume_token(DOUBLEDOT);
     t = jj_consume_token(COMPONENT);
 com = ReadVal(t);
-        //composant type exists AND composant name unique
-        if (Composant.typeExists(com) && !composants.containsKey(id)) {
-            Composant comp = new Composant(id, com);
+        //composant name unique
+        if (!composants.containsKey(id)) {
+            comp = new Composant(id, com);
             composants.put(id, comp);
         }
         else{
-            System.out.println("Unable to create Composant");
+            System.out.println("Error: Le nom du composant doit etre unique.");
             System.exit(0);
         }
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case OPENPAR:{
       jj_consume_token(OPENPAR);
-      jj_consume_token(ID);
+      t = jj_consume_token(ID);
       jj_consume_token(CLOSEPAR);
+id = ReadVal(t);
+            if (composants.containsKey(id)) {
+            Composant origComp = composants.get(id);
+            origComp.addComposant(comp);
+            }
+            else{
+                System.out.println("Error: Composant proprietaire indefini.");
+                System.exit(0);
+            }
       break;
       }
     default:
@@ -135,7 +145,6 @@ com = ReadVal(t);
       ;
     }
     jj_consume_token(SEMICOLON);
-
   }
 
   final public void Prop() throws ParseException {Token t;
@@ -397,6 +406,17 @@ ReadVal(t);
     finally { jj_save(1, xla); }
   }
 
+  private boolean jj_3R_12()
+ {
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_13()) {
+    jj_scanpos = xsp;
+    if (jj_3R_14()) return true;
+    }
+    return false;
+  }
+
   private boolean jj_3R_14()
  {
     if (jj_scan_token(OPENTAG)) return true;
@@ -437,17 +457,6 @@ ReadVal(t);
     xsp = jj_scanpos;
     if (jj_3R_11()) jj_scanpos = xsp;
     if (jj_scan_token(OPENTAG)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_12()
- {
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_13()) {
-    jj_scanpos = xsp;
-    if (jj_3R_14()) return true;
-    }
     return false;
   }
 
