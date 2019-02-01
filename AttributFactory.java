@@ -11,8 +11,11 @@ public class AttributFactory {
         case "int":
             this.att = new Int(name);
             break;
-        default:
+        case "list":
             this.att = new List(name);
+            break;
+        default:
+            this.att = null;
             break;
         }
         return this.att;

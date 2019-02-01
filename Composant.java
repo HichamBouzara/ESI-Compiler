@@ -26,4 +26,18 @@ public class Composant {
     this.attributs.add(att);
   }
 
+  /**
+   * @return the name
+   */
+  public String getName() {
+    return name;
+  }
+
+  /**
+   * @return the type
+   */
+  public String getType() {
+    return type;
+  }
+
 }

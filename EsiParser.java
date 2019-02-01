@@ -14,6 +14,7 @@ class EsiParser implements EsiParserConstants {
     }
     String output;
     HashMap<String, Composant> composants = new HashMap<String, Composant>();
+    AttributFactory attFactory = new AttributFactory();
 
   final public void Start(PrintStream printStream) throws ParseException {
     Interface();
@@ -28,14 +29,14 @@ System.out.println("Compilation ended with success.");
     throw new Error("Missing return statement in function");
   }
 
-  final public void Interface() throws ParseException {
+  final public void Interface() throws ParseException {Composant comp = null;
     jj_consume_token(DEBUT);
     jj_consume_token(INTERFACE);
     label_1:
     while (true) {
-      Comp();
+      comp = Comp();
       jj_consume_token(PROP);
-      Prop();
+      Prop(comp);
       jj_consume_token(EVET);
       Evet();
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -106,7 +107,7 @@ prop=ReadVal(t);
     }
   }
 
-  final public void Comp() throws ParseException {Token t;
+  final public Composant Comp() throws ParseException {Token t;
     String id, com;
     Composant comp = null;
     jj_consume_token(COMP);
@@ -120,7 +121,7 @@ com = ReadVal(t);
             comp = new Composant(id, com);
             composants.put(id, comp);
         }
-        else{
+        else {
             System.out.println("Error: Le nom du composant doit etre unique.");
             System.exit(0);
         }
@@ -130,7 +131,8 @@ com = ReadVal(t);
       t = jj_consume_token(ID);
       jj_consume_token(CLOSEPAR);
 id = ReadVal(t);
-            if (composants.containsKey(id)) {
+            //Checks if propriatary composant exists and is different than created composant
+            if (composants.containsKey(id) && id!=comp.getName()) {
             Composant origComp = composants.get(id);
             origComp.addComposant(comp);
             }
@@ -145,14 +147,20 @@ id = ReadVal(t);
       ;
     }
     jj_consume_token(SEMICOLON);
+{if ("" != null) return comp;}
+    throw new Error("Missing return statement in function");
   }
 
-  final public void Prop() throws ParseException {Token t;
-    String id;
+  final public void Prop(Composant comp) throws ParseException {Token t;
+    int N = 20;
+    String id[] = new String[N];
+    String type[] = new String[N];
+    int i = 0, j = 0;
     label_4:
     while (true) {
-      t = jj_consume_token(ID);
-id=ReadVal(t);
+      /*ASSEMBLE ATT NAMES*/
+                  t = jj_consume_token(ID);
+id[i++]=ReadVal(t);
       label_5:
       while (true) {
         switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -166,19 +174,32 @@ id=ReadVal(t);
         }
         jj_consume_token(COMMA);
         t = jj_consume_token(ID);
-id=ReadVal(t);
+id[i++]=ReadVal(t);
       }
       jj_consume_token(DOUBLEDOT);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case ID:{
-        t = jj_consume_token(ID);
-ReadVal(t);
+        /*CASE OF : 1 KNOWN TYPE*/
+                    t = jj_consume_token(ID);
+type[0]=ReadVal(t);
+                Attribut att = null;
+                for(int c1=0 ; c1<i ; c1++){
+                    att = attFactory.createAttribut(id[c1],type[0]);
+                        System.out.println(type[0]);
+                    if(att != null){
+                        comp.addAttribut(att);
+                    }
+                    else{
+                        System.out.println("Error: Type attribut indefini.");
+                        System.exit(0);
+                    }
+                }
         break;
         }
       case OPENTAG:{
         jj_consume_token(OPENTAG);
         t = jj_consume_token(ID);
-ReadVal(t);
+type[j++] = ReadVal(t);
         label_6:
         while (true) {
           switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
@@ -192,9 +213,22 @@ ReadVal(t);
           }
           jj_consume_token(COMMA);
           t = jj_consume_token(ID);
-ReadVal(t);
+type[j++] = ReadVal(t);
         }
         jj_consume_token(CLOSETAG);
+Attribut att = null;
+                for(int c1=0 ; c1<i ; c1++){
+                    att = attFactory.createAttribut(id[c1],"list");
+                    if(att != null){
+                        List attl = (List)att;
+                        attl.setValues(new HashSet<String>(Arrays.asList(type)));
+                        comp.addAttribut(attl);
+                    }
+                    else{
+                        System.out.println("Error: Type attribut indefini.");
+                        System.exit(0);
+                    }
+                }
         break;
         }
       default:
@@ -203,6 +237,7 @@ ReadVal(t);
         throw new ParseException();
       }
       jj_consume_token(SEMICOLON);
+i = 0; j = 0;
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case ID:{
         ;
@@ -406,6 +441,22 @@ ReadVal(t);
     finally { jj_save(1, xla); }
   }
 
+  private boolean jj_3R_11()
+ {
+    if (jj_scan_token(OPENPAR)) return true;
+    return false;
+  }
+
+  private boolean jj_3_1()
+ {
+    if (jj_scan_token(ACTION)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_11()) jj_scanpos = xsp;
+    if (jj_scan_token(OPENTAG)) return true;
+    return false;
+  }
+
   private boolean jj_3R_12()
  {
     Token xsp;
@@ -441,22 +492,6 @@ ReadVal(t);
   private boolean jj_3R_13()
  {
     if (jj_scan_token(ACTION)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_11()
- {
-    if (jj_scan_token(OPENPAR)) return true;
-    return false;
-  }
-
-  private boolean jj_3_1()
- {
-    if (jj_scan_token(ACTION)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_11()) jj_scanpos = xsp;
-    if (jj_scan_token(OPENTAG)) return true;
     return false;
   }
 

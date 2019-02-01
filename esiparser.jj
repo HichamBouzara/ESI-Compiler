@@ -17,6 +17,7 @@ class EsiParser {
     }
     String output;
     HashMap<String, Composant> composants = new HashMap<String, Composant>();
+    AttributFactory attFactory = new AttributFactory();
 }
 PARSER_END(EsiParser)
 
@@ -72,14 +73,16 @@ String ReadVal(Token t) :
 }
 
 void Interface() :
-{}
+{
+    Composant comp = null;
+}
 {
     <DEBUT> <INTERFACE>
     (
-        Comp()
+        comp = Comp()
         (
             <PROP>
-            Prop()
+            Prop(comp)
             <EVET>
             Evet()
         )
@@ -113,7 +116,7 @@ void Actions() :
     (Expression())+
 }
 
-void Comp() :
+Composant Comp() :
 {
     Token t;
     String id, com;
@@ -128,7 +131,7 @@ void Comp() :
             comp = new Composant(id, com);
             composants.put(id, comp);
         }
-        else{
+        else {
             System.out.println("Error: Le nom du composant doit etre unique.");
             System.exit(0);
         }
@@ -139,7 +142,8 @@ void Comp() :
         <CLOSEPAR>
         { 
             id = ReadVal(t); 
-            if (composants.containsKey(id)) {
+            //Checks if propriatary composant exists and is different than created composant
+            if (composants.containsKey(id) && id!=comp.getName()) {
             Composant origComp = composants.get(id);
             origComp.addComposant(comp);
             }
@@ -150,35 +154,72 @@ void Comp() :
         }
     ]
     <SEMICOLON>
+    {return comp;}
 }
 
-void Prop() :
+void Prop(Composant comp) :
 {
     Token t;
-    String id;
+    int N = 20;
+    String id[] = new String[N];
+    String type[] = new String[N];
+    int i = 0, j = 0;
 }
 {
     (
         ( 
-            t=<ID> {id=ReadVal(t);}
+            /*ASSEMBLE ATT NAMES*/
+            t=<ID> {id[i++]=ReadVal(t);}
             (
                 <COMMA>
-                t=<ID> {id=ReadVal(t);}
+                t=<ID> {id[i++]=ReadVal(t);}
             )*
         )
         <DOUBLEDOT> 
+            /*ASSEMBLE ATT TYPES*/
         (
-            t=<ID> {ReadVal(t);}
+            /*CASE OF : 1 KNOWN TYPE*/
+            t=<ID> {
+                type[0]=ReadVal(t);
+                Attribut att = null;
+                for(int c1=0 ; c1<i ; c1++){
+                    att = attFactory.createAttribut(id[c1],type[0]);
+                    if(att != null){
+                        comp.addAttribut(att);
+                    }
+                    else{
+                        System.out.println("Error: Type attribut indefini.");
+                        System.exit(0);
+                    }
+                }
+            }
             |
+            /*CASE OF : MULTIPLE STRING TYPES*/
             <OPENTAG> 
-            t=<ID> {ReadVal(t);}
+            t=<ID> {type[j++] = ReadVal(t);}
             (
                 <COMMA>
-                t=<ID> {ReadVal(t);}
+                t=<ID> {type[j++] = ReadVal(t);}
             )*
             <CLOSETAG>
+            {
+                Attribut att = null;
+                for(int c1=0 ; c1<i ; c1++){
+                    att = attFactory.createAttribut(id[c1],"list");
+                    if(att != null){
+                        List attl = (List)att;
+                        attl.setValues(new HashSet<String>(Arrays.asList(type)));
+                        comp.addAttribut(attl);
+                    }
+                    else{
+                        System.out.println("Error: Type attribut indefini.");
+                        System.exit(0);
+                    }
+                }
+            }
         )
         <SEMICOLON>
+        {i = 0; j = 0;}
     )+
 }
 
