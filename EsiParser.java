@@ -52,23 +52,23 @@ System.out.println("Compilation ended with success.");
   }
 
   final public void Inits() throws ParseException {Token t;
-    String comp, prop, val;
+    String name, prop, val;
     jj_consume_token(INIT);
     label_2:
     while (true) {
       t = jj_consume_token(ID);
-comp=ReadVal(t);
+name=ReadVal(t);
       jj_consume_token(DOUBLEDOUBLEDOT);
       t = jj_consume_token(ID);
 prop=ReadVal(t);
       jj_consume_token(ASSIGN);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case ID:{
-        jj_consume_token(ID);
+        t = jj_consume_token(ID);
         break;
         }
       case NUMBER:{
-        jj_consume_token(NUMBER);
+        t = jj_consume_token(NUMBER);
         break;
         }
       default:
@@ -76,6 +76,15 @@ prop=ReadVal(t);
         jj_consume_token(-1);
         throw new ParseException();
       }
+val = ReadVal(t);
+            if(composants.containsKey(name)){
+                Composant comp = composants.get(name);
+                Attribut attr = getAttribut(comp, prop);
+                attr.setValue(val);
+            }else{
+                System.out.println("Erreur: Composant inexistant.");
+                System.exit(0);
+            }
       jj_consume_token(SEMICOLON);
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case ID:{

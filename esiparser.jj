@@ -92,19 +92,30 @@ void Interface() :
 void Inits() :
 {
     Token t;
-    String comp, prop, val;
+    String name, prop, val;
 }
 {
     <INIT>
     (
-        t=<ID> {comp=ReadVal(t);} 
+        t=<ID> {name=ReadVal(t);} 
         <DOUBLEDOUBLEDOT> t=<ID> {prop=ReadVal(t);} 
         <ASSIGN> 
         (
-            <ID>
+            t=<ID>
             |
-            <NUMBER>
+            t=<NUMBER>
         )
+        {
+            val = ReadVal(t);
+            if(composants.containsKey(name)){
+                Composant comp = composants.get(name);
+                Attribut attr = getAttribut(comp, prop);
+                attr.setValue(val);
+            }else{
+                System.out.println("Erreur: Composant inexistant.");
+                System.exit(0);
+            }
+        }
         <SEMICOLON> 
     )+
 }
