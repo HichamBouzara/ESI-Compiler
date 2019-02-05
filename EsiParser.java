@@ -5,6 +5,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.*;
+import java.io.PrintWriter;
+import java.io.File;
+import java.io.IOException;
 
 class EsiParser implements EsiParserConstants {
     public static void main(String[] args) throws ParseException, TokenMgrError {
@@ -15,6 +18,11 @@ class EsiParser implements EsiParserConstants {
     String output;
     HashMap<String, Composant> composants = new HashMap<String, Composant>();
     AttributFactory attFactory = new AttributFactory();
+    //Pour la generation de l'automate
+    HashMap<Key, String> automata = new HashMap<Key, String>();
+    int statesCounter = 1;
+    int end = -1, endState = -1, state = 0;
+    Stack<Integer> stack = new Stack<Integer>();
 
   final public void Start(PrintStream printStream) throws ParseException {
     Interface();
@@ -22,6 +30,35 @@ class EsiParser implements EsiParserConstants {
     Actions();
     jj_consume_token(FIN);
 System.out.println("Compilation ended with success.");
+        try{
+            int m, n;
+            PrintWriter writer = new PrintWriter("automaton.aef", "UTF-8");
+            writer.print("          ");
+            for( m=0 ; m < statesCounter ; m++){
+                writer.print("S" + Integer.toString(m) + "    ");
+            }
+            writer.println("");
+
+            String[][] transitions = new String[statesCounter][statesCounter];
+            for(Key key : automata.keySet()){
+                transitions[key.getDebut()][key.getFin()] = automata.get(key);
+            }
+            for(m=0 ; m < statesCounter ; m++){
+                writer.print("S" + Integer.toString(m) + "      ");
+                if (m < 10) writer.print(" ");
+                for(n=0 ; n<statesCounter ; n++){
+                    if(n>10) writer.print(" ");
+                    writer.print(transitions[m][n] + "  ");
+                }
+                writer.println("");
+            }
+
+            writer.close();
+            System.out.println("Generated finite-state automaton in file: automaton.aef");
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
   }
 
   final public String ReadVal(Token t) throws ParseException {
@@ -98,7 +135,7 @@ val = ReadVal(t);
     }
   }
 
-  final public void Actions() throws ParseException {
+  final public void Actions() throws ParseException {stack.push(state);
     jj_consume_token(ACT);
     label_3:
     while (true) {
@@ -390,6 +427,7 @@ if (comp.attExists(att)) {if ("" != null) return comp.getAttribut(att);}
 
   final public void Expression() throws ParseException {Token t;
     String act, name;
+    Key key = new Key();
     switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
     case ACTION:{
       t = jj_consume_token(ACTION);
@@ -402,6 +440,15 @@ if(composants.containsKey(name)){
                     Composant comp = composants.get(name);
                     if(comp.actionExists(act)){
                         comp.action(act);
+                        //Pour l'automate
+                        key.debut(state);
+                        if (end != -1 && endState == -1) {
+                            state = end;
+                            end = -1;
+                        }
+                        else state = statesCounter++;
+                        key.fin(state);
+                        automata.put(key, act);
                     }else{
                         System.out.println("Erreur: Action sur composant inexistante.");
                         System.exit(0);
@@ -414,8 +461,20 @@ if(composants.containsKey(name)){
       }
     case OPENTAG:{
       jj_consume_token(OPENTAG);
+state = statesCounter++;
+                if(end != -1 && endState == -1) endState = state;
+                stack.push(state);
       Expression();
       jj_consume_token(CLOSETAG);
+if( ((Integer)stack.peek()) == endState) {
+                    key.debut(state);
+                    state = end;
+                    key.fin(end);
+                    automata.put(key, "vide");
+                    end = -1;
+                    endState = -1;
+                }
+                stack.pop();
       break;
       }
     default:
@@ -432,15 +491,15 @@ if(composants.containsKey(name)){
       }
       switch ((jj_ntk==-1)?jj_ntk_f():jj_ntk) {
       case SEMICOLON:{
-        jj_consume_token(SEMICOLON);
+        t = jj_consume_token(SEMICOLON);
         break;
         }
       case NEXTACTION:{
-        jj_consume_token(NEXTACTION);
+        t = jj_consume_token(NEXTACTION);
         break;
         }
       case PLUS:{
-        jj_consume_token(PLUS);
+        t = jj_consume_token(PLUS);
         break;
         }
       default:
@@ -448,6 +507,16 @@ if(composants.containsKey(name)){
         jj_consume_token(-1);
         throw new ParseException();
       }
+String nextaction = ReadVal(t);
+                switch(nextaction){
+                    case ";":
+                                break;
+                    case "~":   end = state;
+                                state = (Integer)stack.peek();
+                                break;
+                    case "+":   state = (Integer)stack.peek();
+                                break;
+                }
       Expression();
     }
   }
@@ -468,15 +537,25 @@ if(composants.containsKey(name)){
     finally { jj_save(1, xla); }
   }
 
-  private boolean jj_3R_10()
+  private boolean jj_3_1()
  {
-    if (jj_scan_token(OPENPAR)) return true;
+    if (jj_scan_token(ACTION)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_10()) jj_scanpos = xsp;
+    if (jj_scan_token(OPENTAG)) return true;
     return false;
   }
 
   private boolean jj_3R_12()
  {
     if (jj_scan_token(ACTION)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_10()
+ {
+    if (jj_scan_token(OPENPAR)) return true;
     return false;
   }
 
@@ -509,16 +588,6 @@ if(composants.containsKey(name)){
     }
     }
     if (jj_3R_11()) return true;
-    return false;
-  }
-
-  private boolean jj_3_1()
- {
-    if (jj_scan_token(ACTION)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_10()) jj_scanpos = xsp;
-    if (jj_scan_token(OPENTAG)) return true;
     return false;
   }
 

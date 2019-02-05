@@ -5,6 +5,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.*;
+import java.io.PrintWriter;
+import java.io.File;
+import java.io.IOException;
 
 /** Token Manager. */
 @SuppressWarnings("unused")public class EsiParserTokenManager implements EsiParserConstants {

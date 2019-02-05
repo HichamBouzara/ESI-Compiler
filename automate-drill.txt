@@ -1,0 +1,77 @@
+stack  = {S, } ; state = S (START)
+stack  = {S, #0, } ; state = #0 (Open)
+stack  = {S, #0, } ; state = A (Action)
+stack  = {S, #0, } ; state = A (;)
+stack  = {S, #0, } ; state = B (Action)
+stack  = {S, } ; state = B (Close)
+stack  = {S, } ; state = B (;)
+stack  = {S, #1} ; state = #1 (Open)
+stack  = {S, #1, #2, } ; state = #2 (Open)
+stack  = {S, #1, #2, } ; state = C (Action)
+stack  = {S, #1, #2, } ; state = C (;)
+stack  = {S, #1, #2, #3, } ; state = #3 (Open)
+stack  = {S, #1, #2, #3, } ; state = D (Action)
+stack  = {S, #1, #2, #3, } ; state = #3 (~) ; end = D
+stack  = {S, #1, #2, #3, #4, } ; state = #4 (Open) end = (#4,D)
+stack  = {S, #1, #2, #3, #4, } ; state = E (Action) end = (#4,D)
+stack  = {S, #1, #2, #3, #4, } ; state = E (;) end = (#4,D)
+stack  = {S, #1, #2, #3, #4, } ; state = F (Action) end = (#4,D)
+stack  = {S, #1, #2, #3, } ; state = D (Close)
+stack  = {S, #1, #2, } ; state = D (Close)
+stack  = {S, #1, } ; state = D (Close)
+stack  = {S, #1, } ; state = #1 (+)
+stack  = {S, #1, #5, } ; state = #5 (Open)
+stack  = {S, #1, #5, } ; state = G (Action)
+stack  = {S, #1, #5, } ; state = G (;)
+stack  = {S, #1, #5, } ; state = H (Action)
+stack  = {S, #1, #5, } ; state = H (;)
+stack  = {S, #1, #5, #6, } ; state = #6 (Open)
+stack  = {S, #1, #5, #6, } ; state = I (Action)
+stack  = {S, #1, #5, #6, } ; state = #6 (~) ; end = I
+stack  = {S, #1, #5, #6, #7, } ; state = #6 (Open) ; end = (#7,I)
+stack  = {S, #1, #5, #6, #7, } ; state = J (Action) ; end = (#7,I)
+stack  = {S, #1, #5, #6, #7, } ; state = J (;) ; end = (#7,I)
+stack  = {S, #1, #5, #6, #7, } ; state = H (Action) ; end = (#7,I)
+stack  = {S, #1, #5, #6, } ; state = I (Close) ;
+stack  = {S, #1, #5, } ; state = I (Close) ;
+stack  = {S, #1, } ; state = I (Close) ;
+stack  = {S, } ; state = I (Close) ;
+
+
+Key key = new Key();
+if (action) {
+    key.debut(state);
+    if (!end.equals("") && endState.equals("")) {
+        state = end;
+        end = "";
+    }
+    else state = "S" + String.toString(statesCounter++);
+    key.fin(state);
+    automata.put(key, act);
+}
+else if (Open) {
+    state = "S" + String.toString(statesCounter++);
+    if(!end.equals("") && endState.equals("")) endState = state;
+    stack.push(state);
+} when (Close) {
+    if(((String)stack.peek()).equals(endState)) {
+        key.debut(state);
+        state = end;
+        key.end(end);
+        automata.put(key, "vide");
+        end = "";
+        endState = "";
+    }   
+    stack.pop(); 
+}
+
+switch(nextaction){
+    case ";":   
+                break;
+    case "~":   end = state;
+                state = (String)stack.peek();
+                break;
+    case "+":   state = (String)stack.peek();
+                break;
+}
+

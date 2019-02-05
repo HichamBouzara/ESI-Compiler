@@ -8,6 +8,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.*;
+import java.io.PrintWriter;
+import java.io.File;
+import java.io.IOException;
 
 class EsiParser {
     public static void main(String[] args) throws ParseException, TokenMgrError {
@@ -18,7 +21,11 @@ class EsiParser {
     String output;
     HashMap<String, Composant> composants = new HashMap<String, Composant>();
     AttributFactory attFactory = new AttributFactory();
+    //Pour la generation de l'automate
     HashMap<Key, String> automata = new HashMap<Key, String>();
+    int statesCounter = 1;
+    int end = -1, endState = -1, state = 0;
+    Stack<Integer> stack = new Stack<Integer>();
 }
 PARSER_END(EsiParser)
 
@@ -64,7 +71,38 @@ void Start(PrintStream printStream) :
     Inits()
     Actions()
     <FIN>
-    { System.out.println("Compilation ended with success."); }
+    {
+        System.out.println("Compilation ended with success.");
+        try{
+            int m, n;
+            PrintWriter writer = new PrintWriter("automaton.aef", "UTF-8");
+            writer.print("          ");
+            for( m=0 ; m < statesCounter ; m++){
+                writer.print("S" + Integer.toString(m) + "    ");
+            }
+            writer.println("");
+
+            String[][] transitions = new String[statesCounter][statesCounter];
+            for(Key key : automata.keySet()){
+                transitions[key.getDebut()][key.getFin()] = automata.get(key);
+            }
+            for(m=0 ; m < statesCounter ; m++){
+                writer.print("S" + Integer.toString(m) + "      ");
+                if (m < 10) writer.print(" ");
+                for(n=0 ; n<statesCounter ; n++){
+                    if(n>10) writer.print(" ");
+                    writer.print(transitions[m][n] + "  ");
+                }
+                writer.println("");
+            }
+        
+            writer.close();
+            System.out.println("Generated finite-state automaton in file: automaton.aef");
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
 
 String ReadVal(Token t) :
@@ -122,7 +160,9 @@ void Inits() :
 }
 
 void Actions() :
-{}
+{
+    stack.push(state);
+}
 {
     <ACT>
     (Expression())+
@@ -286,17 +326,28 @@ Attribut getAttribut(Composant comp, String att):
 void Expression() :
 {
     Token t;
-    String act, name, state = "Accueil";
+    String act, name;
+    Key key = new Key();
 }
 {
         
         (
+            (
             t=<ACTION> {act=ReadVal(t);} <OPENPAR> t=<ID> {name=ReadVal(t);} <CLOSEPAR>
             {
                 if(composants.containsKey(name)){
                     Composant comp = composants.get(name);
                     if(comp.actionExists(act)){
                         comp.action(act);
+                        //Pour l'automate
+                        key.debut(state);
+                        if (end != -1 && endState == -1) {
+                            state = end;
+                            end = -1;
+                        }
+                        else state = statesCounter++;
+                        key.fin(state);
+                        automata.put(key, act); 
                     }else{
                         System.out.println("Erreur: Action sur composant inexistante.");
                         System.exit(0);
@@ -306,8 +357,43 @@ void Expression() :
                     System.exit(0);
                 }
             } 
-            |   
-            <OPENTAG> Expression() <CLOSETAG>
+            )
+            |  
+            (
+            <OPENTAG>
+            {
+                state = statesCounter++;
+                if(end != -1 && endState == -1) endState = state;
+                stack.push(state);
+            }
+            Expression() <CLOSETAG>
+            {
+                if( ((Integer)stack.peek()) == endState) {
+                    key.debut(state);
+                    state = end;
+                    key.fin(end);
+                    automata.put(key, "vide");
+                    end = -1;
+                    endState = -1;
+                }   
+                stack.pop();
+            }
+            ) 
         )
-        (LOOKAHEAD(2) ( <SEMICOLON> | <NEXTACTION> | <PLUS> ) Expression())* 
+        (
+            LOOKAHEAD(2) ( t=<SEMICOLON> | t=<NEXTACTION> | t=<PLUS> ) 
+            {
+                String nextaction = ReadVal(t);
+                switch(nextaction){
+                    case ";":   
+                                break;
+                    case "~":   end = state;
+                                state = (Integer)stack.peek();
+                                break;
+                    case "+":   state = (Integer)stack.peek();
+                                break;
+                }
+            }
+            Expression()
+        )* 
 }
