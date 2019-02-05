@@ -2,7 +2,8 @@ import java.util.*;
 
 public class Composant {
 
-  static final String arr[] = {"Fenêtre", "boite Dialogue", "panel", "Bouton", "Champs Texte", "Combo Box", "Liste Déroulante", "case A cochet","Bouton Radio","cône"}; 
+  static final String arr[] = { "Fenêtre", "boite Dialogue", "panel", "Bouton", "Champs Texte", "Combo Box",
+      "Liste Déroulante", "case A cochet", "Bouton Radio", "cône" };
   static final Set<String> types = new HashSet<>(Arrays.asList(arr));
   private String type;
   private String name;
@@ -29,6 +30,10 @@ public class Composant {
 
   public Attribut getAttribut(String att) {
     return (attributs.get(att));
+  }
+
+  public HashMap<String, Attribut> getAttributs() {
+    return this.attributs;
   }
 
   public Action getAction(String act) {

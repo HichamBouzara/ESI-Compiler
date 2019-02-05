@@ -25,4 +25,7 @@ public class List implements Attribut {
         return this.value;
     }
 
+    public String getName() {
+        return this.name;
+    }
 }

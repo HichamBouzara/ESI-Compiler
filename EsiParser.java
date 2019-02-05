@@ -29,18 +29,22 @@ class EsiParser implements EsiParserConstants {
     Inits();
     Actions();
     jj_consume_token(FIN);
-System.out.println("Compilation ended with success.");
+System.out.println("*********************************************************************************************");
+        System.out.println("Compilation ended with success.");
         try{
+            //GENERATION DE TABLE DE TRANSITIONS
             int m, n;
-            PrintWriter writer = new PrintWriter("automaton.aef", "UTF-8");
+            String[][] transitions = new String[statesCounter][statesCounter];
+            PrintWriter writer = new PrintWriter("automaton.aef", "ISO-8859-1");
             writer.print("          ");
             for( m=0 ; m < statesCounter ; m++){
                 writer.print("S" + Integer.toString(m) + "    ");
+                for (n=0 ; n < statesCounter ; n++) transitions[m][n] = "  x ";
             }
             writer.println("");
 
-            String[][] transitions = new String[statesCounter][statesCounter];
             for(Key key : automata.keySet()){
+
                 transitions[key.getDebut()][key.getFin()] = automata.get(key);
             }
             for(m=0 ; m < statesCounter ; m++){
@@ -55,10 +59,43 @@ System.out.println("Compilation ended with success.");
 
             writer.close();
             System.out.println("Generated finite-state automaton in file: automaton.aef");
+
+            //GENERATION DE TABLE DES COMPOSANTS 
+            writer = new PrintWriter("composants.gui", "ISO-8859-1");
+            writer.print("NOM COMPOSANT   |  TYPE COMPOSANT         |                   ATTRIBUTS");
+            writer.println("");
+            writer.print("__________________________________________________________________________________________________________________");
+            writer.println("");
+            writer.println("");
+
+            for(Composant composant : composants.values()){
+                writer.print(composant.getName() + "          |          ");
+                writer.print(composant.getType() + "          |          ");
+                for(Attribut attribut : composant.getAttributs().values()){
+                    if(attribut instanceof Bool) {
+                        Bool boolAtt = (Bool)attribut;
+                        writer.print(boolAtt.getName() + " = "+ Boolean.toString(boolAtt.getValue()) + "    ,   " );
+                    }
+                    else if (attribut instanceof Int) {
+                        Int numAtt = (Int)attribut;
+                        writer.print(numAtt.getName() + " = "+ Integer.toString(numAtt.getValue()) + "    ,   " );
+                    }
+                    else if (attribut instanceof List) {
+                        List listAtt = (List)attribut;
+                        writer.print(listAtt.getName() + " = "+ listAtt.getValue() + "    ,   " );
+                    }
+                }
+                writer.println("");
+            }
+
+            writer.close();
+            System.out.println("Generated list of composants in file: composants.gui");
+
         }
         catch (IOException e) {
             e.printStackTrace();
         }
+        System.out.println("*********************************************************************************************");
   }
 
   final public String ReadVal(Token t) throws ParseException {
@@ -537,28 +574,6 @@ String nextaction = ReadVal(t);
     finally { jj_save(1, xla); }
   }
 
-  private boolean jj_3_1()
- {
-    if (jj_scan_token(ACTION)) return true;
-    Token xsp;
-    xsp = jj_scanpos;
-    if (jj_3R_10()) jj_scanpos = xsp;
-    if (jj_scan_token(OPENTAG)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_12()
- {
-    if (jj_scan_token(ACTION)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_10()
- {
-    if (jj_scan_token(OPENPAR)) return true;
-    return false;
-  }
-
   private boolean jj_3R_11()
  {
     Token xsp;
@@ -588,6 +603,28 @@ String nextaction = ReadVal(t);
     }
     }
     if (jj_3R_11()) return true;
+    return false;
+  }
+
+  private boolean jj_3_1()
+ {
+    if (jj_scan_token(ACTION)) return true;
+    Token xsp;
+    xsp = jj_scanpos;
+    if (jj_3R_10()) jj_scanpos = xsp;
+    if (jj_scan_token(OPENTAG)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_12()
+ {
+    if (jj_scan_token(ACTION)) return true;
+    return false;
+  }
+
+  private boolean jj_3R_10()
+ {
+    if (jj_scan_token(OPENPAR)) return true;
     return false;
   }
 

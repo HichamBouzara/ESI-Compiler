@@ -1,0 +1,9 @@
+NOM COMPOSANT   |  TYPE COMPOSANT         |                   ATTRIBUTS
+__________________________________________________________________________________________________________________
+
+FenP          |          Fenêtre          |          Ypos = 10    ,   Position = Agrd    ,   Xpos = 10    ,   Visible = true    ,   
+MenuH          |          Combo Box          |          Visible = true    ,   ItemChoisi = Fichier    ,   Actif = false    ,   
+BtProjection          |          Bouton          |          Etat = Enfoncer    ,   
+Commande          |          Combo Box          |          Option = Projection    ,   Deployer = false    ,   
+BtDistance          |          Bouton          |          Etat = Enfoncer    ,   
+Plan          |          Fenêtre          |          ListObjet = Segment    ,   NbreObjet = 1    ,   Actif = true    ,   
