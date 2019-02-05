@@ -165,6 +165,7 @@ id2 = ReadVal(t);
     String id[] = new String[N];
     String type[] = new String[N];
     int i = 0, j = 0;
+    Attribut att = null;
     label_4:
     while (true) {
       /*ASSEMBLE ATT NAMES*/
@@ -191,7 +192,6 @@ id[i++]=ReadVal(t);
         /*CASE OF : 1 KNOWN TYPE*/
                     t = jj_consume_token(ID);
 type[0]=ReadVal(t);
-                Attribut att = null;
                 for(int c1=0 ; c1<i ; c1++){
                     att = attFactory.createAttribut(id[c1],type[0]);
                     if(att != null){
@@ -224,8 +224,7 @@ type[j++] = ReadVal(t);
 type[j++] = ReadVal(t);
         }
         jj_consume_token(CLOSETAG);
-Attribut att = null;
-                for(int c1=0 ; c1<i ; c1++){
+for(int c1=0 ; c1<i ; c1++){
                     att = attFactory.createAttribut(id[c1],"list");
                     if(att != null){
                         List attl = (List)att;
@@ -469,6 +468,12 @@ if(composants.containsKey(name)){
     finally { jj_save(1, xla); }
   }
 
+  private boolean jj_3R_10()
+ {
+    if (jj_scan_token(OPENPAR)) return true;
+    return false;
+  }
+
   private boolean jj_3R_12()
  {
     if (jj_scan_token(ACTION)) return true;
@@ -514,12 +519,6 @@ if(composants.containsKey(name)){
     xsp = jj_scanpos;
     if (jj_3R_10()) jj_scanpos = xsp;
     if (jj_scan_token(OPENTAG)) return true;
-    return false;
-  }
-
-  private boolean jj_3R_10()
- {
-    if (jj_scan_token(OPENPAR)) return true;
     return false;
   }
 

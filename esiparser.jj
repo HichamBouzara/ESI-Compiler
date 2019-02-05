@@ -18,6 +18,7 @@ class EsiParser {
     String output;
     HashMap<String, Composant> composants = new HashMap<String, Composant>();
     AttributFactory attFactory = new AttributFactory();
+    HashMap<Key, String> automata = new HashMap<Key, String>();
 }
 PARSER_END(EsiParser)
 
@@ -175,6 +176,7 @@ void Prop(Composant comp) :
     String id[] = new String[N];
     String type[] = new String[N];
     int i = 0, j = 0;
+    Attribut att = null;
 }
 {
     (
@@ -192,7 +194,6 @@ void Prop(Composant comp) :
             /*CASE OF : 1 KNOWN TYPE*/
             t=<ID> {
                 type[0]=ReadVal(t);
-                Attribut att = null;
                 for(int c1=0 ; c1<i ; c1++){
                     att = attFactory.createAttribut(id[c1],type[0]);
                     if(att != null){
@@ -214,7 +215,6 @@ void Prop(Composant comp) :
             )*
             <CLOSETAG>
             {
-                Attribut att = null;
                 for(int c1=0 ; c1<i ; c1++){
                     att = attFactory.createAttribut(id[c1],"list");
                     if(att != null){
@@ -286,7 +286,7 @@ Attribut getAttribut(Composant comp, String att):
 void Expression() :
 {
     Token t;
-    String act, name;
+    String act, name, state = "Accueil";
 }
 {
         
