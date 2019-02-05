@@ -24,7 +24,7 @@ class EsiParser {
     //Pour la generation de l'automate
     HashMap<Key, String> automata = new HashMap<Key, String>();
     int statesCounter = 1;
-    int end = -1, endState = -1, state = 0;
+    int end = -1, endState = -1, state;
     Stack<Integer> stack = new Stack<Integer>();
 }
 PARSER_END(EsiParser)
@@ -199,6 +199,7 @@ void Inits() :
 
 void Actions() :
 {
+    state = 0;
     stack.push(state);
 }
 {

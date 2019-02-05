@@ -21,7 +21,7 @@ class EsiParser implements EsiParserConstants {
     //Pour la generation de l'automate
     HashMap<Key, String> automata = new HashMap<Key, String>();
     int statesCounter = 1;
-    int end = -1, endState = -1, state = 0;
+    int end = -1, endState = -1, state;
     Stack<Integer> stack = new Stack<Integer>();
 
   final public void Start(PrintStream printStream) throws ParseException {
@@ -172,7 +172,8 @@ val = ReadVal(t);
     }
   }
 
-  final public void Actions() throws ParseException {stack.push(state);
+  final public void Actions() throws ParseException {state = 0;
+    stack.push(state);
     jj_consume_token(ACT);
     label_3:
     while (true) {

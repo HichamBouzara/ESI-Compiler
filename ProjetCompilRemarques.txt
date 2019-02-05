@@ -1,0 +1,194 @@
+Bach tgeneri el fichier jar, efta7 CMD f dossier ta3 lprojet ta3ek, o dakhel had la commande:
+
+    jar -cvf EsiParser.jar *.class
+
+telque "EsiParser" howa nom ta3 lfichier eli rak 7ab tgenerih (it could be any name you want)
+
+Bach t'analysi kach programme IHM rak katbou f fichier text (dirlou extension .ihm pcq howa galenna f l'ennonce), 
+efta7 CMD f dossier ta3 lprojet ta3ek, o dakhel had la commande:
+
+    java -cp ./EsiParser.jar EsiParser <input.ihm
+
+***********************************************************************************************************************************************
+***********************************************************************************************************************************************
+***********************************************************************************************************************************************
+
+PAR RAPPORT lel generation ta3 table attributaire o ta3 table des composants 
+(table des composants galena diro fiha ghir les composants declarés fel program ana derthom o zedtlou les attributs tawe3hom bonus ;-) )
+HAWLIK lcode eli zedtou (or Remplacitou) (in addition to a new class: Key) :
+
+class EsiParser {
+    ZEDT DECLARIT HADO LES VARIABLES F EsiParser
+
+    //Pour la generation de l'automate
+    HashMap<Key, String> automata = new HashMap<Key, String>();
+    int statesCounter = 1;
+    int end = -1, endState = -1, state = 0;
+    Stack<Integer> stack = new Stack<Integer>();
+}
+
+void Start(PrintStream printStream) :
+{}
+{
+    Interface()
+    Inits()
+    Actions()
+    <FIN>
+    {
+        System.out.println("*********************************************************************************************");
+        System.out.println("Compilation ended with success.");
+        try{
+            //GENERATION DE TABLE DE TRANSITIONS /////////////////////////////////////////////////
+            int m, n;
+            String[][] transitions = new String[statesCounter][statesCounter];
+            PrintWriter writer = new PrintWriter("automaton.aef", "ISO-8859-1");
+            writer.print("          ");
+            for( m=0 ; m < statesCounter ; m++){
+                writer.print("S" + Integer.toString(m) + "    ");
+                for (n=0 ; n < statesCounter ; n++) transitions[m][n] = "  x ";
+            }
+            writer.println("");
+
+            for(Key key : automata.keySet()){
+
+                transitions[key.getDebut()][key.getFin()] = automata.get(key);
+            }
+            for(m=0 ; m < statesCounter ; m++){
+                writer.print("S" + Integer.toString(m) + "      ");
+                if (m < 10) writer.print(" ");
+                for(n=0 ; n<statesCounter ; n++){
+                    if(n>10) writer.print(" ");
+                    writer.print(transitions[m][n] + "  ");
+                }
+                writer.println("");
+            }
+        
+            writer.close();
+            System.out.println("Generated finite-state automaton in file: automaton.aef");
+
+            //GENERATION DE TABLE DES COMPOSANTS ///////////////////////////////////////////////
+
+            writer = new PrintWriter("composants.gui", "ISO-8859-1");
+            writer.print("NOM COMPOSANT   |  TYPE COMPOSANT         |                   ATTRIBUTS");
+            writer.println("");
+            writer.print("__________________________________________________________________________________________________________________");
+            writer.println("");
+            writer.println("");
+
+            for(Composant composant : composants.values()){
+                writer.print(composant.getName() + "          |          ");
+                writer.print(composant.getType() + "          |          ");
+                for(Attribut attribut : composant.getAttributs().values()){
+                    if(attribut instanceof Bool) {
+                        Bool boolAtt = (Bool)attribut;
+                        writer.print(boolAtt.getName() + " = "+ Boolean.toString(boolAtt.getValue()) + "    ,   " );
+                    }
+                    else if (attribut instanceof Int) {
+                        Int numAtt = (Int)attribut;
+                        writer.print(numAtt.getName() + " = "+ Integer.toString(numAtt.getValue()) + "    ,   " );
+                    }
+                    else if (attribut instanceof List) {
+                        List listAtt = (List)attribut;
+                        writer.print(listAtt.getName() + " = "+ listAtt.getValue() + "    ,   " );
+                    }
+                }
+                writer.println("");
+            }
+        
+            writer.close();
+            System.out.println("Generated list of composants in file: composants.gui");
+
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("*********************************************************************************************");
+
+    }
+}
+
+void Actions() :
+{
+    state = 0;
+    stack.push(state);
+}
+{
+    <ACT>
+    (Expression())+
+}
+
+
+void Expression() :
+{
+    Token t;
+    String act, name;
+    Key key = new Key();
+}
+{
+        
+        (
+            (
+            t=<ACTION> {act=ReadVal(t);} <OPENPAR> t=<ID> {name=ReadVal(t);} <CLOSEPAR>
+            {
+                if(composants.containsKey(name)){
+                    Composant comp = composants.get(name);
+                    if(comp.actionExists(act)){
+                        comp.action(act);
+                        //Pour l'automate
+                        key.debut(state);
+                        if (end != -1 && endState == -1) {
+                            state = end;
+                            end = -1;
+                        }
+                        else state = statesCounter++;
+                        key.fin(state);
+                        automata.put(key, act); 
+                    }else{
+                        System.out.println("Erreur: Action sur composant inexistante.");
+                        System.exit(0);
+                    }
+                }else{
+                    System.out.println("Erreur: Action sur un composant inexistant.");
+                    System.exit(0);
+                }
+            } 
+            )
+            |  
+            (
+            <OPENTAG>
+            {
+                state = statesCounter++;
+                if(end != -1 && endState == -1) endState = state;
+                stack.push(state);
+            }
+            Expression() <CLOSETAG>
+            {
+                if( ((Integer)stack.peek()) == endState) {
+                    key.debut(state);
+                    state = end;
+                    key.fin(end);
+                    automata.put(key, "vide");
+                    end = -1;
+                    endState = -1;
+                }   
+                stack.pop();
+            }
+            ) 
+        )
+        (
+            LOOKAHEAD(2) ( t=<SEMICOLON> | t=<NEXTACTION> | t=<PLUS> ) 
+            {
+                String nextaction = ReadVal(t);
+                switch(nextaction){
+                    case ";":   
+                                break;
+                    case "~":   end = state;
+                                state = (Integer)stack.peek();
+                                break;
+                    case "+":   state = (Integer)stack.peek();
+                                break;
+                }
+            }
+            Expression()
+        )* 
+}
